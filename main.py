@@ -20,6 +20,8 @@ data['Clean Articles'] = data['Article'].apply(cleaner)
 vectorizer = CountVectorizer(max_features=2000, stop_words='english')
 X = vectorizer.fit_transform(data['Clean Articles'])
 word_freq_matrix = pd.DataFrame(X.toarray(), columns=vectorizer.get_feature_names_out())
+labels = data['NewsType']
+
 # print(word_freq_matrix)
 #Preform Truncated Decomposition
 def TruncateSVD(k, X):
@@ -31,13 +33,29 @@ def runQuery(query, svd, k, vectorizer, X):
     query_clean = cleaner(query)
     q_vec = vectorizer.transform([query_clean])
     q_svd = svd.transform(q_vec)
-    sims = cosine_similarity(q_svd, X_low_k)[0]
+    sims = cosine_similarity(q_svd, X_k)[0]
     top_indices = sims.argsort()[::-1][:5]
     headers = data['Heading'].iloc[top_indices].tolist()
     return headers
 
-svd, X_low_k = TruncateSVD(1, X)
-svd_df = pd.DataFrame(X_low_k)
+def retrieval_precision_at_5(X_k, labels):
+    sims = cosine_similarity(X_k)
+    precisions = []
 
-query = "fuel economy driving car"
-print(runQuery(query, svd, 1, vectorizer, X_low_k))
+    for i in range(len(labels)):
+        top = sims[i].argsort()[::-1][1:6]  # skip self
+        true_matches = sum(labels[top] == labels[i])
+        precisions.append(true_matches / 10)
+
+    return np.mean(precisions)
+
+results = []
+for k in range(1000):
+    svd, X_k = TruncateSVD(k, X)
+    p10 = retrieval_precision_at_5(X_k, labels.to_numpy())
+    results.append({"k": k, "P@10": p10})
+df_results = pd.DataFrame(results)
+print(df_results)
+
+# query = "fuel economy driving car"
+# print(runQuery(query, svd, 1, vectorizer, X_k))
