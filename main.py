@@ -37,7 +37,7 @@ def runQuery(query, svd, k, vectorizer, X):
     top_indices = sims.argsort()[::-1][:5]
     return top_indices
 
-def retrieval_precision_at_5(X_k, labels):
+def retrieval_precision_at_10(X_k, labels):
     sims = cosine_similarity(X_k)
     precisions = []
 
