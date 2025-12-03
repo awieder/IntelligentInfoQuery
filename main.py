@@ -51,7 +51,7 @@ def retrieval_precision_at_10(X_k, labels):
 results = []
 for k in range(5, 600, 5):
     svd, X_k = TruncateSVD(k, X)
-    p10 = retrieval_precision_at_5(X_k, labels.to_numpy())
+    p10 = retrieval_precision_at_10(X_k, labels.to_numpy())
     results.append({"k": k, "P_10": p10})
 df_results = pd.DataFrame(results)
 print(df_results)
